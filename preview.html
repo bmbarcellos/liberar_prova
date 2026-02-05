@@ -126,7 +126,6 @@
   <div class="container">
     <h2>Preview da Prova</h2>
 
-    <!-- Badge visual de status -->
     <div id="statusBadge" class="status-badge status-ativada">
       <span class="status-dot"></span>
       ATIVADA
@@ -166,7 +165,7 @@
       <strong>Ativada por:</strong> ${contexto.ativada_por}
     `;
 
-    // ===== 4. Botão de preview =====
+    // ===== 4. Botão de preview (GET) =====
     document.getElementById("btnPreview").addEventListener("click", carregarPreview);
 
     async function carregarPreview() {
@@ -175,19 +174,12 @@
       btn.innerText = "Carregando prova...";
 
       try {
-        const res = await fetch(
-          "https://webhook.artideia.com.br/webhook/preview_prova",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              prova_id: contexto.prova_id,
-              status: contexto.status
-            })
-          }
-        );
+        const url =
+          "https://webhook.artideia.com.br/webhook/preview_prova" +
+          "?prova_id=" + encodeURIComponent(contexto.prova_id) +
+          "&status=" + encodeURIComponent(contexto.status);
+
+        const res = await fetch(url);
 
         if (!res.ok) {
           throw new Error("Erro ao buscar a prova");
