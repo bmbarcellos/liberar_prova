@@ -145,7 +145,7 @@
 
     if (!contextoRaw) {
       alert("Sessão inválida. Retorne à ativação da prova.");
-      window.location.href = "index.html"; // página 1
+      window.location.href = "index.html";
     }
 
     const contexto = JSON.parse(contextoRaw);
@@ -170,12 +170,23 @@
     document.getElementById("btnPreview").addEventListener("click", carregarPreview);
 
     async function carregarPreview() {
-      document.getElementById("btnPreview").disabled = true;
-      document.getElementById("btnPreview").innerText = "Carregando prova...";
+      const btn = document.getElementById("btnPreview");
+      btn.disabled = true;
+      btn.innerText = "Carregando prova...";
 
       try {
         const res = await fetch(
-          "https://webhook.artideia.com.br/webhook/preview_prova?prova_id=" + encodeURIComponent(contexto.prova_id)
+          "https://webhook.artideia.com.br/webhook/preview_prova",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              prova_id: contexto.prova_id,
+              status: contexto.status
+            })
+          }
         );
 
         if (!res.ok) {
@@ -183,8 +194,8 @@
         }
 
         const data = await res.json();
-
         renderizarProva(data);
+
       } catch (err) {
         alert("Erro ao carregar o preview da prova.");
         console.error(err);
