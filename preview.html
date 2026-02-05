@@ -175,7 +175,7 @@
 
       try {
         const res = await fetch(
-          "https://webhook.artideia.com.br/webhook/preview_prova" + contexto.prova_id
+          "https://webhook.artideia.com.br/webhook/preview_prova?prova_id=" + encodeURIComponent(contexto.prova_id)
         );
 
         if (!res.ok) {
