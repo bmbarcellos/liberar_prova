@@ -56,19 +56,40 @@
       cursor: not-allowed;
     }
 
-    pre {
-      margin-top: 20px;
-      background: #111827;
-      color: #e5e7eb;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-    }
-
     .erro {
       color: #b91c1c;
       font-weight: bold;
       margin-top: 12px;
+    }
+
+    .questao {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .questao h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .alternativas li,
+    .pares li {
+      margin: 6px 0;
+    }
+
+    img.questao-img {
+      max-width: 100%;
+      margin: 12px 0;
+      border-radius: 8px;
+    }
+
+    .resposta {
+      margin-top: 12px;
+      padding: 10px;
+      background: #f3f4f6;
+      border-left: 4px solid #10b981;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -82,22 +103,22 @@
     </h2>
 
     <p><strong>ID da Prova:</strong> <span id="provaId">—</span></p>
-    <p><strong>Ativada por:</strong> <span id="ativadaPor">—</span></p>
+    <p><strong>Duração:</strong> <span id="duracao">—</span> minutos</p>
 
     <button id="btnPreview">Visualizar Prova</button>
 
     <div id="mensagemErro" class="erro"></div>
 
-    <pre id="resultadoPreview"></pre>
+    <div id="provaContainer"></div>
   </div>
 
   <script>
-    // ===== 1. Recupera contexto salvo pela página 1 =====
+    // ===== 1. Contexto =====
     const raw = sessionStorage.getItem("prova_contexto");
 
     if (!raw) {
       document.getElementById("mensagemErro").innerText =
-        "Sessão inválida ou expirada. Retorne à ativação da prova.";
+        "Sessão inválida ou expirada.";
       document.getElementById("btnPreview").disabled = true;
       throw new Error("Contexto não encontrado");
     }
@@ -112,9 +133,9 @@
       throw new Error("JSON inválido");
     }
 
-    // ===== 2. Renderização básica =====
+    // ===== 2. Cabeçalho =====
     document.getElementById("provaId").innerText = prova.prova_id || "—";
-    document.getElementById("ativadaPor").innerText = prova.ativada_por || "—";
+    document.getElementById("duracao").innerText = prova.duracao_min || "—";
 
     const badge = document.getElementById("statusBadge");
 
@@ -123,15 +144,15 @@
       badge.className = "badge badge-ativada";
     } else {
       document.getElementById("mensagemErro").innerText =
-        "Apenas provas com status ATIVADA podem ser visualizadas.";
+        "Apenas provas ATIVADAS podem ser visualizadas.";
       document.getElementById("btnPreview").disabled = true;
       throw new Error("Status inválido");
     }
 
-    // ===== 3. Disparo do preview (GET) =====
+    // ===== 3. Preview =====
     document.getElementById("btnPreview").addEventListener("click", async () => {
-      document.getElementById("resultadoPreview").innerText =
-        "Carregando prova...";
+      const container = document.getElementById("provaContainer");
+      container.innerHTML = "Carregando prova...";
 
       try {
         const url =
@@ -139,13 +160,53 @@
           "?prova_id=" + encodeURIComponent(prova.prova_id);
 
         const response = await fetch(url);
-        const json = await response.json();
+        const data = await response.json();
 
-        document.getElementById("resultadoPreview").innerText =
-          JSON.stringify(json, null, 2);
+        container.innerHTML = "";
+
+        data.questoes.forEach((q, index) => {
+          const div = document.createElement("div");
+          div.className = "questao";
+
+          let html = `<h3>Questão ${index + 1}</h3>`;
+          html += `<p>${q.enunciado}</p>`;
+
+          if (q.imagem_id) {
+            html += `<img src="${q.imagem_id}" class="questao-img">`;
+          }
+
+          // Múltipla escolha
+          if (q.alternativas && q.alternativas.length > 0) {
+            html += "<ul class='alternativas'>";
+            q.alternativas.forEach(alt => {
+              html += `<li>${alt}</li>`;
+            });
+            html += "</ul>";
+          }
+
+          // Correlação
+          if (q.pares && q.pares.length > 0) {
+            html += "<ul class='pares'>";
+            q.pares.forEach(p => {
+              html += `<li>${p.colunaA} ↔ ${p.colunaB}</li>`;
+            });
+            html += "</ul>";
+          }
+
+          // Resposta (preview)
+          if (q.resposta) {
+            html += `
+              <div class="resposta">
+                <strong>Resposta:</strong> ${q.resposta}
+              </div>`;
+          }
+
+          div.innerHTML = html;
+          container.appendChild(div);
+        });
 
       } catch (err) {
-        document.getElementById("resultadoPreview").innerText = "";
+        container.innerHTML = "";
         document.getElementById("mensagemErro").innerText =
           "Erro ao carregar o preview da prova.";
         console.error(err);
