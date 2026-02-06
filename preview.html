@@ -113,7 +113,6 @@
   </div>
 
   <script>
-    // ===== 1. Contexto =====
     const raw = sessionStorage.getItem("prova_contexto");
 
     if (!raw) {
@@ -133,7 +132,6 @@
       throw new Error("JSON inválido");
     }
 
-    // ===== 2. Cabeçalho =====
     document.getElementById("provaId").innerText = prova.prova_id || "—";
     document.getElementById("duracao").innerText = prova.duracao_min || "—";
 
@@ -149,7 +147,6 @@
       throw new Error("Status inválido");
     }
 
-    // ===== 3. Preview =====
     document.getElementById("btnPreview").addEventListener("click", async () => {
       const container = document.getElementById("provaContainer");
       container.innerHTML = "Carregando prova...";
@@ -163,6 +160,8 @@
         const data = await response.json();
 
         container.innerHTML = "";
+
+        const letras = ["A", "B", "C", "D", "E"];
 
         data.questoes.forEach((q, index) => {
           const div = document.createElement("div");
@@ -178,8 +177,8 @@
           // Múltipla escolha
           if (q.alternativas && q.alternativas.length > 0) {
             html += "<ul class='alternativas'>";
-            q.alternativas.forEach(alt => {
-              html += `<li>${alt}</li>`;
+            q.alternativas.forEach((alt, i) => {
+              html += `<li><strong>${letras[i]})</strong> ${alt}</li>`;
             });
             html += "</ul>";
           }
@@ -193,7 +192,7 @@
             html += "</ul>";
           }
 
-          // Resposta (preview)
+          // Resposta / gabarito
           if (q.resposta) {
             html += `
               <div class="resposta">
