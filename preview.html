@@ -104,7 +104,6 @@
       <span id="statusBadge"></span>
     </h2>
 
-    <!-- METADADOS DA PROVA -->
     <div class="meta">
       <p><strong>ID da Prova:</strong> <span id="provaId">—</span></p>
       <p><strong>Hash da Prova:</strong> <span id="hashProva">—</span></p>
@@ -120,7 +119,6 @@
   </div>
 
   <script>
-    // ===== 1. Contexto vindo da página 1 =====
     const raw = sessionStorage.getItem("prova_contexto");
 
     if (!raw) {
@@ -140,7 +138,6 @@
       throw new Error("JSON inválido");
     }
 
-    // ===== 2. Metadados =====
     document.getElementById("provaId").innerText = prova.prova_id || "—";
     document.getElementById("hashProva").innerText = prova.hash_prova || "—";
     document.getElementById("duracao").innerText = prova.duracao_min ?? "—";
@@ -158,7 +155,6 @@
       throw new Error("Status inválido");
     }
 
-    // ===== 3. Preview da prova =====
     document.getElementById("btnPreview").addEventListener("click", async () => {
       const container = document.getElementById("provaContainer");
       container.innerHTML = "Carregando prova...";
@@ -202,10 +198,13 @@
             html += "</ul>";
           }
 
-          if (q.resposta) {
+          if (q.resposta !== undefined && q.resposta !== null) {
+            const idx = Number(q.resposta) - 1;
+            const letraResposta = letras[idx] || q.resposta;
+
             html += `
               <div class="resposta">
-                <strong>Resposta:</strong> ${q.resposta}
+                <strong>Resposta:</strong> ${letraResposta}
               </div>`;
           }
 
