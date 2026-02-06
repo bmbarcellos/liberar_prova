@@ -136,14 +136,16 @@
           return;
         }
 
-        // 🔒 AJUSTE MÍNIMO DE ATOMICIDADE
-        if (!Array.isArray(data) || !data[0]) {
+        // 🔒 CORREÇÃO MÍNIMA: normaliza array OU objeto
+        const contexto = Array.isArray(data) ? data[0] : data;
+
+        if (!contexto || !contexto.prova_id) {
           alert("Resposta inválida do servidor.");
           return;
         }
 
         // Salva retorno do workflow 3 no storage
-        sessionStorage.setItem("prova_contexto", JSON.stringify(data[0]));
+        sessionStorage.setItem("prova_contexto", JSON.stringify(contexto));
 
         // Redireciona automaticamente para a página 2
         window.location.href = "preview.html";
