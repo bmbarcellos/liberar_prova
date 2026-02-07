@@ -99,12 +99,6 @@
       padding: 6px 10px;
       text-align: left;
     }
-
-    .linha-correcao {
-      margin-top: 6px;
-      font-size: 14px;
-      font-weight: bold;
-    }
   </style>
 </head>
 
@@ -200,11 +194,6 @@
             html += `<tr><td>${colA[i]}</td><td>${colB[i]}</td></tr>`;
           }
           html += "</table></div>";
-
-          // Mostra gabarito correto
-          html += `<div class="linha-correcao"><strong>Gabarito:</strong> `;
-          html += q.pares.map(p => `${p.colunaA} → ${p.colunaB}`).join(", ");
-          html += `</div>`;
         }
 
         /* 🔹 RESPOSTA */
