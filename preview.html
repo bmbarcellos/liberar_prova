@@ -157,9 +157,14 @@
         html += `<p>${q.enunciado}</p>`;
 
         /* 🔹 IMAGEM */
-        if (q.imagem_id) {
-          const imgURL = `https://drive.google.com/uc?id=${q.imagem_id}`;
-          html += `<img src="${imgURL}" class="questao-img">`;
+        if (q.imagem_link) {
+          let img = q.imagem_link;
+          // Se for link do Google Drive, converte para URL direta
+          const match = img.match(/\/d\/([a-zA-Z0-9_-]+)/);
+          if (match && match[1]) {
+            img = `https://drive.google.com/uc?id=${match[1]}`;
+          }
+          html += `<img src="${img}" class="questao-img">`;
         }
 
         /* 🔹 MÚLTIPLA ESCOLHA */
@@ -175,7 +180,6 @@
         if (q.pares?.length) {
           const colA = q.pares.map(p => p.colunaA);
           const colB = [...q.pares.map(p => p.colunaB)];
-          // embaralha coluna B
           for (let i = colB.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [colB[i], colB[j]] = [colB[j], colB[i]];
@@ -205,7 +209,6 @@
           } else if (typeof r === "string" && letras.includes(r.toUpperCase())) {
             respostaFinal = r.toUpperCase();
           } else if (Array.isArray(r)) {
-            // Para correlação, mostra pares corretos
             respostaFinal = r.map(p => `${p.colunaA} → ${p.colunaB}`).join(", ");
           }
 
