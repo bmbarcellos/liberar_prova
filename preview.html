@@ -134,7 +134,6 @@
       const response = await fetch(url);
       const data = await response.json();
 
-      // 🔹 Atualiza METADADOS com dados REAIS do webhook
       document.getElementById("hashProva").innerText = data.hash_prova || "—";
       document.getElementById("duracao").innerText = data.duracao_min ?? "—";
       document.getElementById("totalQuestoes").innerText = data.total_questoes ?? "—";
@@ -151,29 +150,23 @@
           html += `<img src="${q.imagem_id}" class="questao-img">`;
         }
 
+        let respostaLetra = "";
+
         if (q.alternativas?.length) {
           html += "<ul>";
           q.alternativas.forEach((alt, i) => {
-            html += `<li><strong>${letras[i]})</strong> ${alt}</li>`;
+            html += `<li><strong>${letras[i]})</strong> ${alt.texto}</li>`;
+            if (alt.correta === true) {
+              respostaLetra = letras[i];
+            }
           });
           html += "</ul>";
         }
 
-        // 🔹 Normalização da resposta
-        if (q.resposta !== undefined && q.resposta !== null) {
-          let respostaFinal = "";
-
-          if (typeof q.resposta === "number" && q.resposta >= 1 && q.resposta <= 5) {
-            respostaFinal = letras[q.resposta - 1];
-          } else if (typeof q.resposta === "string" && letras.includes(q.resposta)) {
-            respostaFinal = q.resposta;
-          } else {
-            respostaFinal = q.resposta; // fallback seguro
-          }
-
+        if (respostaLetra) {
           html += `
             <div class="resposta">
-              <strong>Resposta:</strong> ${respostaFinal}
+              <strong>Resposta:</strong> ${respostaLetra}
             </div>`;
         }
 
