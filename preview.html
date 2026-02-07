@@ -116,10 +116,14 @@
 
     .linha-correcao {
       display: flex;
-      justify-content: space-between;
+      flex-wrap: wrap;
       font-size: 12px;
       color: #065f46;
       margin-top: 4px;
+    }
+
+    .linha-correcao span {
+      margin-right: 8px;
     }
   </style>
 </head>
@@ -178,6 +182,7 @@ document.getElementById("btnPreview").addEventListener("click", async () => {
       let html = `<div class="questao"><h3>Questão ${index + 1}</h3>`;
       html += `<p>${q.enunciado}</p>`;
 
+      // Imagem
       if (q.imagem_link) {
         let img = q.imagem_link;
         const match = img.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -185,6 +190,7 @@ document.getElementById("btnPreview").addEventListener("click", async () => {
         html += `<img src="${img}" class="questao-img">`;
       }
 
+      // Múltipla escolha
       if (q.Tipo_questao === "multipla" && q.alternativas?.length) {
         html += "<ul>";
         q.alternativas.forEach((alt, i) => {
@@ -193,11 +199,11 @@ document.getElementById("btnPreview").addEventListener("click", async () => {
         html += "</ul>";
       }
 
-      // NOVO: correlação
+      // Correlação
       if (q.Tipo_questao === "correlacao" && q.pares?.length) {
         const colA = q.pares.map(p => p.colunaA);
         const colB = [...q.pares.map(p => p.colunaB)];
-        // embaralha a coluna B
+        // embaralha coluna B
         for (let i = colB.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [colB[i], colB[j]] = [colB[j], colB[i]];
@@ -208,18 +214,18 @@ document.getElementById("btnPreview").addEventListener("click", async () => {
                   <div class="coluna"><ul>${colB.map(b => `<li>${b}</li>`).join('')}</ul></div>
                  </div>`;
 
-        // mostra correspondência correta
+        // Gabarito
         html += `<div class="linha-correcao"><strong>Gabarito:</strong>`;
         q.pares.forEach(p => {
-          html += ` <span>${p.colunaA} → ${p.colunaB};</span>`;
+          html += ` <span>${p.colunaA} → ${p.colunaB}</span>`;
         });
         html += `</div>`;
       }
 
+      // Resposta múltipla
       if (q.resposta !== undefined && q.resposta !== null && q.Tipo_questao !== "correlacao") {
         let respostaFinal = "—";
         const r = q.resposta;
-
         if (typeof r === "number" && r >= 0 && r <= 4) respostaFinal = letras[r];
         else if (typeof r === "number" && r >= 1 && r <= 5) respostaFinal = letras[r - 1];
         else if (!isNaN(r)) {
