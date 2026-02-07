@@ -127,6 +127,7 @@
   if (!raw) throw new Error("Contexto não encontrado");
 
   const prova = JSON.parse(raw);
+
   document.getElementById("provaId").innerText = prova.prova_id || "—";
 
   const badge = document.getElementById("statusBadge");
@@ -150,24 +151,21 @@
       document.getElementById("totalQuestoes").innerText = data.total_questoes ?? "—";
 
       container.innerHTML = "";
+
       const letras = ["A", "B", "C", "D", "E"];
 
       data.questoes.forEach((q, index) => {
         let html = `<div class="questao"><h3>Questão ${index + 1}</h3>`;
         html += `<p>${q.enunciado}</p>`;
 
-        /* 🔹 IMAGEM */
+        /* 🔹 AJUSTE DE IMAGEM (imagem_link) */
         if (q.imagem_link) {
           let img = q.imagem_link;
-
-          // Detecta se é link do Drive e converte para URL direta
-          if (img.includes("drive.google.com")) {
-            const match = img.match(/\/d\/([a-zA-Z0-9_-]+)/);
-            if (match && match[1]) {
-              img = `https://drive.google.com/uc?id=${match[1]}`;
-            }
+          // Se for link do Google Drive, converte para URL direta
+          const match = img.match(/\/d\/([a-zA-Z0-9_-]+)/);
+          if (match && match[1]) {
+            img = `https://drive.google.com/uc?id=${match[1]}`;
           }
-
           html += `<img src="${img}" class="questao-img">`;
         }
 
@@ -182,6 +180,7 @@
 
         /* 🔹 CORRELAÇÃO */
         if (q.pares?.length) {
+          // Cria cópia da coluna B e embaralha
           const colA = q.pares.map(p => p.colunaA);
           const colB = [...q.pares.map(p => p.colunaB)];
           for (let i = colB.length - 1; i > 0; i--) {
@@ -189,6 +188,7 @@
             [colB[i], colB[j]] = [colB[j], colB[i]];
           }
 
+          // Monta tabela com coluna B embaralhada
           html += `<div><strong>Correlação:</strong><table>`;
           html += "<tr><th>Coluna A</th><th>Coluna B</th></tr>";
           for (let i = 0; i < colA.length; i++) {
@@ -213,6 +213,7 @@
           } else if (typeof r === "string" && letras.includes(r.toUpperCase())) {
             respostaFinal = r.toUpperCase();
           } else if (Array.isArray(r)) {
+            // Para correlação, mostra pares corretos
             respostaFinal = r.map(p => `${p.colunaA} → ${p.colunaB}`).join(", ");
           }
 
