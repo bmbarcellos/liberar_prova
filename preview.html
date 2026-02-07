@@ -161,6 +161,7 @@
         /* 🔹 AJUSTE DE IMAGEM (imagem_link) */
         if (q.imagem_link) {
           let img = q.imagem_link;
+          // Se for link do Google Drive, converte para URL direta
           const match = img.match(/\/d\/([a-zA-Z0-9_-]+)/);
           if (match && match[1]) {
             img = `https://drive.google.com/uc?id=${match[1]}`;
