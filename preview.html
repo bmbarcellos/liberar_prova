@@ -89,41 +89,15 @@
       border-radius: 8px;
     }
 
-    /* Estilo da correlação */
-    .correlacao {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 12px;
-      font-size: 14px;
+    table {
+      border-collapse: collapse;
+      margin-top: 8px;
     }
 
-    .coluna {
-      width: 45%;
-    }
-
-    .coluna ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .coluna li {
-      background: #f3f4f6;
-      margin-bottom: 6px;
+    table th, table td {
+      border: 1px solid #d1d5db;
       padding: 6px 10px;
-      border-radius: 4px;
-    }
-
-    .linha-correcao {
-      display: flex;
-      flex-wrap: wrap;
-      font-size: 12px;
-      color: #065f46;
-      margin-top: 4px;
-    }
-
-    .linha-correcao span {
-      margin-right: 8px;
+      text-align: left;
     }
   </style>
 </head>
@@ -149,107 +123,104 @@
 </div>
 
 <script>
-const raw = sessionStorage.getItem("prova_contexto");
-if (!raw) throw new Error("Contexto não encontrado");
+  const raw = sessionStorage.getItem("prova_contexto");
+  if (!raw) throw new Error("Contexto não encontrado");
 
-const prova = JSON.parse(raw);
-document.getElementById("provaId").innerText = prova.prova_id || "—";
-const badge = document.getElementById("statusBadge");
-badge.innerText = "ATIVADA";
-badge.className = "badge badge-ativada";
+  const prova = JSON.parse(raw);
 
-document.getElementById("btnPreview").addEventListener("click", async () => {
-  const container = document.getElementById("provaContainer");
-  container.innerHTML = "Carregando prova...";
+  document.getElementById("provaId").innerText = prova.prova_id || "—";
 
-  try {
-    const url =
-      "https://webhook.artideia.com.br/webhook/preview_prova" +
-      "?prova_id=" + encodeURIComponent(prova.prova_id);
+  const badge = document.getElementById("statusBadge");
+  badge.innerText = "ATIVADA";
+  badge.className = "badge badge-ativada";
 
-    const response = await fetch(url);
-    const data = await response.json();
+  document.getElementById("btnPreview").addEventListener("click", async () => {
+    const container = document.getElementById("provaContainer");
+    container.innerHTML = "Carregando prova...";
 
-    document.getElementById("hashProva").innerText = data.hash_prova || "—";
-    document.getElementById("duracao").innerText = data.duracao_min ?? "—";
-    document.getElementById("totalQuestoes").innerText = data.total_questoes ?? "—";
+    try {
+      const url =
+        "https://webhook.artideia.com.br/webhook/preview_prova" +
+        "?prova_id=" + encodeURIComponent(prova.prova_id);
 
-    container.innerHTML = "";
+      const response = await fetch(url);
+      const data = await response.json();
 
-    const letras = ["A", "B", "C", "D", "E"];
+      document.getElementById("hashProva").innerText = data.hash_prova || "—";
+      document.getElementById("duracao").innerText = data.duracao_min ?? "—";
+      document.getElementById("totalQuestoes").innerText = data.total_questoes ?? "—";
 
-    data.questoes.forEach((q, index) => {
-      let html = `<div class="questao"><h3>Questão ${index + 1}</h3>`;
-      html += `<p>${q.enunciado}</p>`;
+      container.innerHTML = "";
 
-      // Imagem
-      if (q.imagem_link) {
-        let img = q.imagem_link;
-        const match = img.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (match && match[1]) img = `https://drive.google.com/uc?id=${match[1]}`;
-        html += `<img src="${img}" class="questao-img">`;
-      }
+      const letras = ["A", "B", "C", "D", "E"];
 
-      // Múltipla escolha
-      if (q.Tipo_questao === "multipla" && q.alternativas?.length) {
-        html += "<ul>";
-        q.alternativas.forEach((alt, i) => {
-          html += `<li><strong>${letras[i]})</strong> ${alt}</li>`;
-        });
-        html += "</ul>";
-      }
+      data.questoes.forEach((q, index) => {
+        let html = `<div class="questao"><h3>Questão ${index + 1}</h3>`;
+        html += `<p>${q.enunciado}</p>`;
 
-      // Correlação
-      if (q.Tipo_questao === "correlacao" && q.pares?.length) {
-        const colA = q.pares.map(p => p.colunaA);
-        const colB = [...q.pares.map(p => p.colunaB)];
-        // embaralha coluna B
-        for (let i = colB.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [colB[i], colB[j]] = [colB[j], colB[i]];
+        /* 🔹 AJUSTE DE IMAGEM (imagem_link) */
+        if (q.imagem_link) {
+          let img = q.imagem_link;
+          const match = img.match(/\/d\/([a-zA-Z0-9_-]+)/);
+          if (match && match[1]) {
+            img = `https://drive.google.com/uc?id=${match[1]}`;
+          }
+          html += `<img src="${img}" class="questao-img">`;
         }
 
-        html += `<div class="correlacao">
-                  <div class="coluna"><ul>${colA.map(a => `<li>${a}</li>`).join('')}</ul></div>
-                  <div class="coluna"><ul>${colB.map(b => `<li>${b}</li>`).join('')}</ul></div>
-                 </div>`;
-
-        // Gabarito
-        html += `<div class="linha-correcao"><strong>Gabarito:</strong>`;
-        q.pares.forEach(p => {
-          html += ` <span>${p.colunaA} → ${p.colunaB}</span>`;
-        });
-        html += `</div>`;
-      }
-
-      // Resposta múltipla
-      if (q.resposta !== undefined && q.resposta !== null && q.Tipo_questao !== "correlacao") {
-        let respostaFinal = "—";
-        const r = q.resposta;
-        if (typeof r === "number" && r >= 0 && r <= 4) respostaFinal = letras[r];
-        else if (typeof r === "number" && r >= 1 && r <= 5) respostaFinal = letras[r - 1];
-        else if (!isNaN(r)) {
-          const n = Number(r);
-          if (n >= 0 && n <= 4) respostaFinal = letras[n];
-          else if (n >= 1 && n <= 5) respostaFinal = letras[n - 1];
-        } else if (typeof r === "string" && letras.includes(r.toUpperCase())) {
-          respostaFinal = r.toUpperCase();
+        /* 🔹 MÚLTIPLA ESCOLHA */
+        if (q.alternativas?.length) {
+          html += "<ul>";
+          q.alternativas.forEach((alt, i) => {
+            html += `<li><strong>${letras[i]})</strong> ${alt}</li>`;
+          });
+          html += "</ul>";
         }
 
-        html += `<div class="resposta"><strong>Resposta:</strong> ${respostaFinal}</div>`;
-      }
+        /* 🔹 CORRELAÇÃO */
+        if (q.pares?.length) {
+          html += `<div><strong>Correlação:</strong><table>`;
+          html += "<tr><th>Coluna A</th><th>Coluna B</th></tr>";
+          q.pares.forEach(p => {
+            html += `<tr><td>${p.colunaA}</td><td>${p.colunaB}</td></tr>`;
+          });
+          html += "</table></div>";
+        }
 
-      html += "</div>";
-      container.insertAdjacentHTML("beforeend", html);
-    });
+        /* 🔹 RESPOSTA */
+        if (q.resposta !== undefined && q.resposta !== null) {
+          let respostaFinal = "—";
+          const r = q.resposta;
 
-  } catch (err) {
-    container.innerHTML = "";
-    document.getElementById("mensagemErro").innerText =
-      "Erro ao carregar o preview da prova.";
-    console.error(err);
-  }
-});
+          if (typeof r === "number" && r >= 0 && r <= 4) {
+            respostaFinal = letras[r];
+          } else if (typeof r === "number" && r >= 1 && r <= 5) {
+            respostaFinal = letras[r - 1];
+          } else if (!isNaN(r)) {
+            const n = Number(r);
+            if (n >= 0 && n <= 4) respostaFinal = letras[n];
+            else if (n >= 1 && n <= 5) respostaFinal = letras[n - 1];
+          } else if (typeof r === "string" && letras.includes(r.toUpperCase())) {
+            respostaFinal = r.toUpperCase();
+          } else if (Array.isArray(r)) {
+            // Para correlação, mostra pares corretos
+            respostaFinal = r.map(p => `${p.colunaA} → ${p.colunaB}`).join(", ");
+          }
+
+          html += `<div class="resposta"><strong>Resposta:</strong> ${respostaFinal}</div>`;
+        }
+
+        html += "</div>";
+        container.insertAdjacentHTML("beforeend", html);
+      });
+
+    } catch (err) {
+      container.innerHTML = "";
+      document.getElementById("mensagemErro").innerText =
+        "Erro ao carregar o preview da prova.";
+      console.error(err);
+    }
+  });
 </script>
 
 </body>
