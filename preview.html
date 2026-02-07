@@ -99,6 +99,12 @@
       padding: 6px 10px;
       text-align: left;
     }
+
+    .linha-correcao {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -179,12 +185,26 @@
 
         /* 🔹 CORRELAÇÃO */
         if (q.pares?.length) {
+          // Cria cópia da coluna B e embaralha
+          const colA = q.pares.map(p => p.colunaA);
+          const colB = [...q.pares.map(p => p.colunaB)];
+          for (let i = colB.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [colB[i], colB[j]] = [colB[j], colB[i]];
+          }
+
+          // Monta tabela com coluna B embaralhada
           html += `<div><strong>Correlação:</strong><table>`;
           html += "<tr><th>Coluna A</th><th>Coluna B</th></tr>";
-          q.pares.forEach(p => {
-            html += `<tr><td>${p.colunaA}</td><td>${p.colunaB}</td></tr>`;
-          });
+          for (let i = 0; i < colA.length; i++) {
+            html += `<tr><td>${colA[i]}</td><td>${colB[i]}</td></tr>`;
+          }
           html += "</table></div>";
+
+          // Mostra gabarito correto
+          html += `<div class="linha-correcao"><strong>Gabarito:</strong> `;
+          html += q.pares.map(p => `${p.colunaA} → ${p.colunaB}`).join(", ");
+          html += `</div>`;
         }
 
         /* 🔹 RESPOSTA */
